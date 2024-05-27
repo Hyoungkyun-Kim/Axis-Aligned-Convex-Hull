@@ -1,9 +1,12 @@
 import numpy as np
 
+######## main implementation ########
+        
 class AxisAlignedConvexHull:
     ## a constructor with parameter
     def __init__(self, iterN):
         coeff = [[1, 0], [0, 1]]
+        
         for index in range(1, iterN):
             coeff = coeff + [[(iterN - index), index]]
             coeff = coeff + [[(iterN - index), -index]]
@@ -38,55 +41,57 @@ class AxisAlignedConvexHull:
 
         return True
 
-    ## vertices for visualization
-    def getVertices(self):
-        previousLineIndex = 0
-        vertices = []
-
-        angleList = np.linspace(0.1, 361.1, 600)
+######## functions for the unit test ########
         
-        for angleDegree in angleList:
-            minLineIndex = 0
-            minLineDistance = 1.0e100
+## vertices for visualization
+def getVertices(boundaryBox):
+    previousLineIndex = 0
+    vertices = []
 
-            angle = angleDegree/180.0*(np.pi)
+    angleList = np.linspace(0.1, 361.1, 600)
+        
+    for angleDegree in angleList:
+        minLineIndex = 0
+        minLineDistance = 1.0e100
+
+        angle = angleDegree/180.0*(np.pi)
             
-            unitVector = np.array([np.cos(angle), np.sin(angle)])
-            for coeffIndex in range(0, self.coeff.shape[0]):
-                distance = 0.0
+        unitVector = np.array([np.cos(angle), np.sin(angle)])
+        for coeffIndex in range(0, boundaryBox.coeff.shape[0]):
+            distance = 0.0
                 
-                if np.inner(unitVector, self.coeff[coeffIndex, :]) > 0.0:
-                    distance = self.distanceAlongDirection(
-                        self.coeff[coeffIndex, 0], self.coeff[coeffIndex, 1],
-                        -self.boundary[coeffIndex, 1],
-                        unitVector
-                    )
-                else: 
-                    distance = self.distanceAlongDirection(
-                        -self.coeff[coeffIndex, 0], -self.coeff[coeffIndex, 1],
-                        self.boundary[coeffIndex, 0],
-                        unitVector
-                    )
+            if np.inner(unitVector, boundaryBox.coeff[coeffIndex, :]) > 0.0:
+                distance = distanceAlongDirection(
+                    boundaryBox.coeff[coeffIndex, 0], boundaryBox.coeff[coeffIndex, 1],
+                    -boundaryBox.boundary[coeffIndex, 1],
+                    unitVector
+                )
+            else: 
+                distance = distanceAlongDirection(
+                    -boundaryBox.coeff[coeffIndex, 0], -boundaryBox.coeff[coeffIndex, 1],
+                    boundaryBox.boundary[coeffIndex, 0],
+                    unitVector
+                )
 
-                if distance < minLineDistance:
-                    minLineDistance = distance
-                    minLineIndex = coeffIndex
+            if distance < minLineDistance:
+                minLineDistance = distance
+                minLineIndex = coeffIndex
 
-            if (minLineIndex != previousLineIndex):
-                vertex = minLineDistance * unitVector
-                vertices = vertices + [vertex]
-                previousLineIndex = minLineIndex
+        if (minLineIndex != previousLineIndex):
+            vertex = minLineDistance * unitVector
+            vertices = vertices + [vertex]
+            previousLineIndex = minLineIndex
 
-        vertices = vertices + [vertices[0]]
+    vertices = vertices + [vertices[0]]
 
-        return np.array(vertices) + self.center
+    return np.array(vertices) + boundaryBox.center
   
-    ## a distance metric for calculating vertices
-    def distanceAlongDirection(self, A, B, c, direction):
-        if abs((A * direction[0]) + (B * direction[1])) < 1e-8:
-            return abs(c) / np.sqrt((A * A) + (B * B))
-        else:
-            return abs(c) / ((A * direction[0]) + (B * direction[1]))
+## a distance metric for calculating vertices
+def distanceAlongDirection(A, B, c, direction):
+    if abs((A * direction[0]) + (B * direction[1])) < 1e-8:
+        return abs(c) / np.sqrt((A * A) + (B * B))
+    else:
+        return abs(c) / ((A * direction[0]) + (B * direction[1]))
 
 ######## unit test ########
         
@@ -105,7 +110,7 @@ if __name__ == '__main__':
     testBox.generate(testPoints)
 
     # vertices for visualization
-    vertrices = testBox.getVertices()
+    vertrices = getVertices(testBox)
 
     # grid for in-out check test
     margin = 0.75 * (testPoints.max(axis=0)[0] - testPoints.min(axis=0)[0])
