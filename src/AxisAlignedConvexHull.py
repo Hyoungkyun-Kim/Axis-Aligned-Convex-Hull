@@ -5,11 +5,16 @@ import numpy as np
 class AxisAlignedConvexHull:
     ## a constructor with parameter
     def __init__(self, iterN):
-        coeff = [[1, 0], [0, 1]]
+        coeff = np.zeros((iterN * 2, 2))
+        coeff[0, 0] = 1.0
+        coeff[1, 1] = 1.0
         
         for index in range(1, iterN):
-            coeff = coeff + [[(iterN - index), index]]
-            coeff = coeff + [[(iterN - index), -index]]
+            coeff[2 * index, 0] = (iterN - index)
+            coeff[2 * index, 1] = index
+            
+            coeff[(2 * index) + 1, 0] = iterN - index
+            coeff[(2 * index) + 1, 1] = -index
 
         self.coeff = np.array(coeff)
         self.boundary = np.zeros(self.coeff.shape)
