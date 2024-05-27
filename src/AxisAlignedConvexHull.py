@@ -5,9 +5,7 @@ import numpy as np
 class AxisAlignedConvexHull:
     ## a constructor with parameter
     def __init__(self, iterN):
-        coeff = np.zeros((iterN * 2, 2))
-        coeff[0, 0] = 1.0
-        coeff[1, 1] = 1.0
+        coeff = np.eye(iterN * 2, 2)
         
         for index in range(1, iterN):
             coeff[2 * index, 0] = (iterN - index)
