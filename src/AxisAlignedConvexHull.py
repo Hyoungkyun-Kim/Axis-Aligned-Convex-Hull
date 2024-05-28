@@ -4,7 +4,8 @@ import numpy as np
         
 class AxisAlignedConvexHull:
     ## a constructor with parameter
-    def __init__(self, iterN):
+    def __init__(self, iterN, precision):
+        self.precision = precision
         coeff = np.eye(iterN * 2, 2)
         
         for index in range(1, iterN):
@@ -34,72 +35,56 @@ class AxisAlignedConvexHull:
         self.boundary = boundary
 
     ## true if pos is inside of this
-    def isIn(self, pos):
+    def isIn(self, pos, margin = 0.0):
         for index in range(0, self.coeff.shape[0]):
             value = np.inner(pos - self.center, self.coeff[index, :])
-            if (value < self.boundary[index, 0]):
+            if (value < (self.boundary[index, 0] - self.precision - margin)):
                 return False
-            elif (value > self.boundary[index, 1]):
+            elif (value > (self.boundary[index, 1] + self.precision + margin)):
                 return False
 
         return True
-
-######## functions for the unit test ########
+    
+    def getVertices(self):
+        vertices = np.zeros((0, 2))
         
-## vertices for visualization
-def getVertices(boundaryBox):
-    previousLineIndex = 0
-    vertices = []
-
-    angleList = np.linspace(0.1, 361.1, 600)
-        
-    for angleDegree in angleList:
-        minLineIndex = 0
-        minLineDistance = 1.0e100
-
-        angle = angleDegree/180.0*(np.pi)
-            
-        unitVector = np.array([np.cos(angle), np.sin(angle)])
-        for coeffIndex in range(0, boundaryBox.coeff.shape[0]):
-            distance = 0.0
+        for index0 in range(0, self.coeff.shape[0]):
+            for index1  in range(index0 + 1, self.coeff.shape[0]):
+                A = np.vstack((self.coeff[index0, :], self.coeff[index1, :]))
                 
-            if np.inner(unitVector, boundaryBox.coeff[coeffIndex, :]) > 0.0:
-                distance = distanceAlongDirection(
-                    boundaryBox.coeff[coeffIndex, 0], boundaryBox.coeff[coeffIndex, 1],
-                    -boundaryBox.boundary[coeffIndex, 1],
-                    unitVector
-                )
-            else: 
-                distance = distanceAlongDirection(
-                    -boundaryBox.coeff[coeffIndex, 0], -boundaryBox.coeff[coeffIndex, 1],
-                    boundaryBox.boundary[coeffIndex, 0],
-                    unitVector
-                )
+                B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
+                intersactions = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersactions + self.center):
+                    vertices = np.vstack((vertices ,intersactions))
+                    
+                B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
+                intersactions = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersactions + self.center):
+                    vertices = np.vstack((vertices ,intersactions))
+                    
+                B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
+                intersactions = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersactions + self.center):
+                    vertices = np.vstack((vertices ,intersactions))
+                    
+                B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
+                intersactions = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersactions + self.center):
+                    vertices = np.vstack((vertices ,intersactions))
 
-            if distance < minLineDistance:
-                minLineDistance = distance
-                minLineIndex = coeffIndex
+        vertices = ((vertices / (self.precision * self.precision)) // (1 / self.precision)) * self.precision
+        vertices = np.unique(vertices, axis=0)
+        
+        sortedIndices = np.argsort(np.arctan2(vertices[:, 0], vertices[:, 1]))
+        sortedIndices = np.concatenate((sortedIndices, [sortedIndices[0]]))
 
-        if (minLineIndex != previousLineIndex):
-            vertex = minLineDistance * unitVector
-            vertices = vertices + [vertex]
-            previousLineIndex = minLineIndex
-
-    vertices = vertices + [vertices[0]]
-
-    return np.array(vertices) + boundaryBox.center
-  
-## a distance metric for calculating vertices
-def distanceAlongDirection(A, B, c, direction):
-    if abs((A * direction[0]) + (B * direction[1])) < 1e-8:
-        return abs(c) / np.sqrt((A * A) + (B * B))
-    else:
-        return abs(c) / ((A * direction[0]) + (B * direction[1]))
+        return vertices[sortedIndices] + self.center
 
 ######## unit test ########
         
 if __name__ == '__main__':
-    resol = 5
+    iterN = 5
+    precision = 1e-6
     
     gridSize = 100
     
@@ -109,11 +94,11 @@ if __name__ == '__main__':
     testPoints = np.random.random((pointNum, 2)) * np.random.random() + np.random.random((1, 2))
 
     # box generation
-    testBox = AxisAlignedConvexHull(resol)
+    testBox = AxisAlignedConvexHull(iterN, precision)
     testBox.generate(testPoints)
 
     # vertices for visualization
-    vertrices = getVertices(testBox)
+    vertices = testBox.getVertices()
 
     # grid for in-out check test
     margin = 0.75 * (testPoints.max(axis=0)[0] - testPoints.min(axis=0)[0])
@@ -146,13 +131,14 @@ if __name__ == '__main__':
 
     plt.plot(inPoint[:, 0], inPoint[:, 1], ' g.')
     plt.plot(outPoint[:, 0], outPoint[:, 1], ' k.')
-    plt.plot(vertrices[:, 0], vertrices[:, 1], 'b-')
+    plt.plot(vertices[:, 0], vertices[:, 1], '-', color=(1, 1, 0))
     plt.plot(testPoints[:, 0], testPoints[:, 1], 'ro')
 
     plt.title(
 f'''Axis-Aligned Convex-Hull
 # of boundary sets: {testBox.boundary.shape[0]//2}
-# of params: {testBox.boundary.shape[0] * 2}'''
+# of params: {testBox.boundary.shape[0] * 2}
+# of vertices: {vertices.shape[0]-1}'''
               )
     
     plt.xlim(xRange)
@@ -162,3 +148,4 @@ f'''Axis-Aligned Convex-Hull
         ['Inside', 'Outside', 'AACH boundary', 'Input points'],
         loc='upper right'
         )
+    
