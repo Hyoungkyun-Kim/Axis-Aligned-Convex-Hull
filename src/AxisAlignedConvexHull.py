@@ -45,6 +45,7 @@ class AxisAlignedConvexHull:
 
         return True
     
+    ## get boundary vertices
     def getVertices(self):
         vertices = np.zeros((0, 2))
         
