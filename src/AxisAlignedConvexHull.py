@@ -54,24 +54,24 @@ class AxisAlignedConvexHull:
                 A = np.vstack((self.coeff[index0, :], self.coeff[index1, :]))
                 
                 B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
-                intersactions = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersactions + self.center):
-                    vertices = np.vstack((vertices ,intersactions))
+                intersections = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersections + self.center):
+                    vertices = np.vstack((vertices ,intersections))
                     
                 B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
-                intersactions = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersactions + self.center):
-                    vertices = np.vstack((vertices ,intersactions))
+                intersections = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersections + self.center):
+                    vertices = np.vstack((vertices ,intersections))
                     
                 B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
-                intersactions = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersactions + self.center):
-                    vertices = np.vstack((vertices ,intersactions))
+                intersections = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersections + self.center):
+                    vertices = np.vstack((vertices ,intersections))
                     
                 B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
-                intersactions = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersactions + self.center):
-                    vertices = np.vstack((vertices ,intersactions))
+                intersections = np.inner(np.linalg.pinv(A), B)
+                if self.isIn(intersections + self.center):
+                    vertices = np.vstack((vertices ,intersections))
 
         vertices = ((vertices / (self.precision * self.precision)) // (1 / self.precision)) * self.precision
         vertices = np.unique(vertices, axis=0)
