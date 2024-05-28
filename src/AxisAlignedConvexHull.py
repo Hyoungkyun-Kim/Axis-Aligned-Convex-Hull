@@ -56,22 +56,22 @@ class AxisAlignedConvexHull:
                 B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
                 intersections = np.inner(np.linalg.pinv(A), B)
                 if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices ,intersections))
+                    vertices = np.vstack((vertices, intersections))
                     
                 B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
                 intersections = np.inner(np.linalg.pinv(A), B)
                 if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices ,intersections))
+                    vertices = np.vstack((vertices, intersections))
                     
                 B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
                 intersections = np.inner(np.linalg.pinv(A), B)
                 if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices ,intersections))
+                    vertices = np.vstack((vertices, intersections))
                     
                 B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
                 intersections = np.inner(np.linalg.pinv(A), B)
                 if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices ,intersections))
+                    vertices = np.vstack((vertices, intersections))
 
         vertices = ((vertices / (self.precision * self.precision)) // (1 / self.precision)) * self.precision
         vertices = np.unique(vertices, axis=0)
