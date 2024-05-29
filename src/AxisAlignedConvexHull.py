@@ -9,11 +9,11 @@ class AxisAlignedConvexHull:
         coeff = np.eye(iterN * 2, 2)
         
         for index in range(1, iterN):
-            coeff[2 * index, 0] = (iterN - index)
+            coeff[2 * index, 0] = iterN - index
             coeff[2 * index, 1] = index
             
-            coeff[(2 * index) + 1, 0] = iterN - index
-            coeff[(2 * index) + 1, 1] = -index
+            coeff[(2 * index) + 1, 0] = index
+            coeff[(2 * index) + 1, 1] = index - iterN
 
         self.coeff = np.array(coeff)
         self.boundary = np.zeros(self.coeff.shape)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
     plt.figure()
 
-    plt.plot(inPoint[:, 0], inPoint[:, 1], ' g.')
+    plt.plot(inPoint[:, 0], inPoint[:, 1], ' w.')
     plt.plot(outPoint[:, 0], outPoint[:, 1], ' k.')
     plt.plot(vertices[:, 0], vertices[:, 1], '-', color=(1, 1, 0))
     plt.plot(testPoints[:, 0], testPoints[:, 1], 'ro')
