@@ -1,4 +1,13 @@
+import sys
+sys.path.insert(1, './action/')
+sys.path.insert(2, './character/')
+sys.path.insert(3, './collision/')
+sys.path.insert(4, './physics/')
+sys.path.insert(5, './platform/')
+
 import numpy as np
+import queue
+from threading import Thread
 
 ######## main implementation ########
         
@@ -47,32 +56,19 @@ class AxisAlignedConvexHull:
     
     ## get boundary vertices
     def getVertices(self):
-        vertices = np.zeros((0, 2))
-        
+        verticesQueue = queue.Queue()
+
+        vertexThread = []
         for index0 in range(0, self.coeff.shape[0]):
             for index1  in range(index0 + 1, self.coeff.shape[0]):
-                A = np.vstack((self.coeff[index0, :], self.coeff[index1, :]))
+                vertexThread = vertexThread + [Thread(target=self.getVertexThread, args=(verticesQueue, index0, index1))]
+                vertexThread[-1].start()
                 
-                B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
-                intersections = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices, intersections))
-                    
-                B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
-                intersections = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices, intersections))
-                    
-                B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
-                intersections = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices, intersections))
-                    
-                B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
-                intersections = np.inner(np.linalg.pinv(A), B)
-                if self.isIn(intersections + self.center):
-                    vertices = np.vstack((vertices, intersections))
+        for index in range(0, len(vertexThread)):
+            vertexThread[index].join()
 
+        vertices = np.array(verticesQueue.queue)
+        
         vertices = ((vertices / (self.precision * self.precision)) // (1 / self.precision)) * self.precision
         vertices = np.unique(vertices, axis=0)
         
@@ -80,6 +76,29 @@ class AxisAlignedConvexHull:
         sortedIndices = np.concatenate((sortedIndices, [sortedIndices[0]]))
 
         return vertices[sortedIndices] + self.center
+
+    def getVertexThread(self, verticesQueue, index0, index1):
+        A = np.vstack((self.coeff[index0, :], self.coeff[index1, :]))
+                
+        B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
+        intersections = np.inner(np.linalg.pinv(A), B)
+        if self.isIn(intersections + self.center):
+            verticesQueue.put(intersections)
+                    
+        B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
+        intersections = np.inner(np.linalg.pinv(A), B)
+        if self.isIn(intersections + self.center):
+            verticesQueue.put(intersections)
+                    
+        B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
+        intersections = np.inner(np.linalg.pinv(A), B)
+        if self.isIn(intersections + self.center):
+            verticesQueue.put(intersections)
+                    
+        B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
+        intersections = np.inner(np.linalg.pinv(A), B)
+        if self.isIn(intersections + self.center):
+            verticesQueue.put(intersections)
 
 ######## unit test ########
         
