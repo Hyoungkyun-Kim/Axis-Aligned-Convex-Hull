@@ -79,29 +79,34 @@ class AxisAlignedConvexHull:
 
     def getVertexThread(self, verticesQueue, index0, index1):
         A = np.vstack((self.coeff[index0, :], self.coeff[index1, :]))
-                
-        B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
-        intersections = np.inner(np.linalg.pinv(A), B)
-        if self.isIn(intersections + self.center):
-            verticesQueue.put(intersections)
-                    
-        B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
-        intersections = np.inner(np.linalg.pinv(A), B)
-        if self.isIn(intersections + self.center):
-            verticesQueue.put(intersections)
-                    
-        B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
-        intersections = np.inner(np.linalg.pinv(A), B)
-        if self.isIn(intersections + self.center):
-            verticesQueue.put(intersections)
-                    
-        B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
-        intersections = np.inner(np.linalg.pinv(A), B)
-        if self.isIn(intersections + self.center):
-            verticesQueue.put(intersections)
-
-######## unit test ########
         
+        B = np.array([self.boundary[index0, 0], self.boundary[index1, 0]]).transpose()
+        aThread = [Thread(target=self.getSigleVertexThread, args=(verticesQueue, A, B))]
+        aThread[-1].start()
+        
+        B = np.array([self.boundary[index0, 0], self.boundary[index1, 1]]).transpose()
+        aThread = aThread + [Thread(target=self.getSigleVertexThread, args=(verticesQueue, A, B))]
+        aThread[-1].start()
+
+        B = np.array([self.boundary[index0, 1], self.boundary[index1, 0]]).transpose()
+        aThread = aThread + [Thread(target=self.getSigleVertexThread, args=(verticesQueue, A, B))]
+        aThread[-1].start()
+        
+        B = np.array([self.boundary[index0, 1], self.boundary[index1, 1]]).transpose()
+        aThread = aThread + [Thread(target=self.getSigleVertexThread, args=(verticesQueue, A, B))]
+        aThread[-1].start()
+
+        for index in range(0, len(aThread)):
+            aThread[index].join()
+        
+        
+    def getSigleVertexThread(self, verticesQueue, A, B):
+        intersections = np.inner(np.linalg.pinv(A), B)
+        if self.isIn(intersections + self.center):
+            verticesQueue.put(intersections)
+        
+######## unit test ########
+
 if __name__ == '__main__':
     iterN = 5
     precision = 1e-6
