@@ -28,6 +28,8 @@ class AxisAlignedConvexHull:
         self.boundary = np.zeros(self.coeff.shape)
         self.center = np.zeros((2,))
 
+        self.vertices = self.getVertices()
+        
     ## generating this from points
     def generate(self, points):
         self.center = 0.5 * (points.max(axis=0) + points.min(axis=0))
@@ -42,6 +44,7 @@ class AxisAlignedConvexHull:
             boundary[index, 1] = projection.max()
         
         self.boundary = boundary
+        self.vertices = self.getVertices()
 
     ## true if pos is inside of this
     def isIn(self, pos, margin = 0.0):
@@ -53,7 +56,7 @@ class AxisAlignedConvexHull:
                 return False
 
         return True
-    
+
     ## get boundary vertices
     def getVertices(self):
         verticesQueue = queue.Queue()
@@ -121,7 +124,7 @@ if __name__ == '__main__':
     # box generation
     testBox = AxisAlignedConvexHull(iterN, precision)
     testBox.generate(testPoints)
-
+    
     # vertices for visualization
     vertices = testBox.getVertices()
 
